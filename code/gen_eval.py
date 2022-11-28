@@ -70,6 +70,8 @@ def get_args_parser():
     # project parameters
     parser.add_argument('--root', type=str, default='.')
     parser.add_argument('--dataset', type=str, default='GOD')
+    parser.add_argument('--shuffle', action='store_true')
+    parser.add_argument('--limit', type=int, default=None)
 
     return parser
 
@@ -79,6 +81,7 @@ if __name__ == '__main__':
     args = args.parse_args()
     root = args.root
     target = args.dataset
+    should_shuffle = args.shuffle
     model_path = os.path.join(root, 'pretrains', f'{target}', 'finetuned.pth')
   
     sd = torch.load(model_path, map_location='cpu')
@@ -124,7 +127,7 @@ if __name__ == '__main__':
     print('load ldm successfully')
     state = sd['state']
     grid, samples = generative_model.generate(dataset_test, config.num_samples, 
-                config.ddim_steps, config.HW, limit=None, state=state) # generate 10 instances
+                config.ddim_steps, config.HW, limit=args.limit, state=state, should_shuffle=should_shuffle) # generate 10 instances
     grid_imgs = Image.fromarray(grid.astype(np.uint8))
 
     os.makedirs(output_path, exist_ok=True)
