@@ -11,6 +11,7 @@ from torchvision.utils import make_grid
 from torch.utils.data import DataLoader
 import torch.nn.functional as F
 from sc_mbm.mae_for_fmri import fmri_encoder
+import random
 
 def create_model_from_config(config, num_voxels, global_pool):
     model = fmri_encoder(num_voxels=num_voxels, patch_size=config.patch_size, embed_dim=config.embed_dim,
@@ -115,7 +116,7 @@ class fLDM:
         
 
     @torch.no_grad()
-    def generate(self, fmri_embedding, num_samples, ddim_steps, HW=None, limit=None, state=None):
+    def generate(self, fmri_embedding, num_samples, ddim_steps, HW=None, limit=None, state=None, should_shuffle=False):
         # fmri_embedding: n, seq_len, embed_dim
         all_samples = []
         if HW is None:
@@ -134,6 +135,9 @@ class fLDM:
             
         with model.ema_scope():
             model.eval()
+            if should_shuffle:
+                fmri_embedding = list(fmri_embedding)
+                random.shuffle(fmri_embedding)
             for count, item in enumerate(fmri_embedding):
                 if limit is not None:
                     if count >= limit:
